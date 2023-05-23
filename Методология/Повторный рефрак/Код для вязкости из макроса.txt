@@ -1,0 +1,41 @@
+Function viscosity_liq(Wc As Variant, viscosity_oil As Variant, viscosity_water As Variant, Bo As Variant, Optional fw As Double = 0.3, Optional Exo As Double = 1, Optional Exw As Double = 1)
+ 
+On Error Resume Next
+ Dim S, S0, S1 As Double
+ Dim Kr_o As Double
+ Dim Kr_w As Double
+ Dim a, b As Double
+ 
+  If Exo <= 0 Then Exo = 1
+  If Exw <= 0 Then Exw = 1
+  S = 0
+  If Wc > 0 Then
+  S0 = (1 / Wc - 1) * (viscosity_oil * Bo * fw) / (viscosity_water * 1.01)
+  a = 0
+  b = 1
+  S1 = 0
+  S = (a + b) / 2
+  
+  While (Abs(((1 - S) ^ Exo) / (S ^ Exw) - S0) > 0.01) 'And (Abs(S - S1) > 0.0001)
+    If ((1 - S) ^ Exo) / (S ^ Exw) > S0 Then
+     a = S
+    Else
+     b = S
+    End If
+    S1 = S
+    S = (a + b) / 2
+    If S >= 1 Then GoTo Ex
+  Wend
+  End If
+Ex:
+  Kr_o = (1 - S) ^ Exo
+  Kr_w = fw * (S) ^ Exw
+      
+  viscosity_liq = (viscosity_water * viscosity_oil) / _
+                (Kr_o * viscosity_water + Kr_w * viscosity_oil)
+ 
+  
+  If Wc = 1 Then viscosity_liq = viscosity_water
+ 
+End Function
+
