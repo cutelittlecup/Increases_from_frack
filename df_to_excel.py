@@ -1,8 +1,20 @@
 import tkinter as tk
 import pandas as pd
+from tkinter import filedialog
 
 
 def to_excel(objects_info, text):
+
+    root = tk.Tk()
+    root.withdraw()
+    name = filedialog.asksaveasfilename(filetypes=[('Excel file', '*.xlsx')])
+    if name[len(name) - 5: len(name)] != '.xlsx':
+        name = name + '.xlsx'
+    if name == '.xlsx':
+        name = 'Расчёт приростов.xlsx'
+
+    root.destroy()
+
     objects_info = dict(sorted(objects_info.items(), key=lambda x: x[0]))
     keys = list(objects_info.keys())
 
@@ -226,16 +238,6 @@ def to_excel(objects_info, text):
                        'Кпрон.расч': K_pron_for_excel, 'Pзаб.расч': P_zab_now_for_excel,
                        'Pпл.расч': P_pl_now_for_excel, 'прирост Qн.расч': up_Q_oil_for_excel,
                        'риски/комментарии по кандидату': risks, 'Кандидат': kandidat, ' ': obrisk})
-
-    root = tk.Tk()
-    root.withdraw()
-    name = filedialog.asksaveasfilename(filetypes=[('Excel file', '*.xlsx')])
-    if name[len(name) - 5: len(name)] != '.xlsx':
-        name = name + '.xlsx'
-    if name == '.xlsx':
-        name = 'Расчёт приростов.xlsx'
-
-    root.destroy()
 
     writer = pd.ExcelWriter(name)
     df.to_excel(writer, sheet_name='ИТОГ', index=False, na_rep='NaN')

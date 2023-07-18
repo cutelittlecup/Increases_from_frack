@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import threading
 
-from text import text_create, clear_text
+from text import text_create, clear_text, text_append, colored_text_append
 import formulas as f
 import data_from_df as dfd
 import df_to_excel as dte
@@ -682,18 +682,17 @@ def runner():
     btn_start.grid_forget()
 
     clear_text(text)
-    widgets.clear()
+    #widgets.clear()
 
     objects_info = dfd.data_from_df(files, text)
-    objects_info = f.formulas(objects_info, keys, text)
+    #objects_info = f.formulas(objects_info, keys, text)
 
     btn_excel.configure(command=lambda: dte.to_excel(objects_info, text))
     btn_excel.grid(row=31, column=0, pady=2)
-    btn_repeat.configure(command=lambda: f.formulas(objects_info, keys, text))
-    btn_repeat.grid(row=32, column=0, pady=2)
+    #btn_repeat.configure(command=lambda: f.formulas(objects_info, keys, text))
+    #btn_repeat.grid(row=32, column=0, pady=2)
 
-    Info_for_listbox(frame_info, objects_info, field, formation, stock, objects_info_for_graphs,
-                     objects_dates_for_graphs)
+    #Info_for_listbox(frame_info, objects_info, field, formation, stock, objects_info_for_graphs, objects_dates_for_graphs)
 
     btn_start.grid(row=8, column=0, columnspan=2, pady=1)
 

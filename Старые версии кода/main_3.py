@@ -1039,7 +1039,9 @@ def main(array_with_file_names):
                 a = (date_TR_new[scepka_New_strat[i]] - date_New_strat[j]).days
                 a = int(a/31)
                 A.append(a)
+            print(A)
             A.reverse()
+            print(A)
             counter = 0
             first_refrack = list()
             for j in range(len(A)):
@@ -1047,6 +1049,7 @@ def main(array_with_file_names):
                     first_refrack.append(date_New_strat[j])
                 elif A[j] < -1:
                     counter += 1
+            print('first_refrack', scepka_New_strat[i], counter, first_refrack)
             first_refrack_not_grp = list()
             if len(first_refrack) == 0:
                 if counter != 0:
@@ -1054,37 +1057,48 @@ def main(array_with_file_names):
                 for j in range(len(A)):
                     if A[j] < -1:
                         first_refrack_not_grp.append(date_New_strat[j])
+            print('first_refrack_not_grp', first_refrack_not_grp)
             if len(first_refrack) == 0 and len(first_refrack_not_grp) == 0:
                 first_refrack.append('-')
             elif len(first_refrack) == 0 and len(first_refrack_not_grp) != 0:
                 first_refrack.append(min(first_refrack_not_grp))
             refracks[scepka_New_strat[i]].append(first_refrack[len(first_refrack) - 1])
             refracks[scepka_New_strat[i]].append(counter)
-
+            print('final', refracks[scepka_New_strat[i]])
+    print(refracks)
     refracks_keys = list(refracks.keys())
 
     for i in range(len(date_TR_new_keys)):
+        print('not')
         if date_TR_new_keys[i] in date_Frack_new_keys and date_TR_new_keys[i] not in refracks_keys:
             min_array = list()
+            print(date_TR_new_keys[i], date_Frack_new[date_TR_new_keys[i]])
             for j in range(len(date_Frack_new[date_TR_new_keys[i]])):
                 min_array.append(min(date_Frack_new[date_TR_new_keys[i]][0]))
             if len(min_array) != 0:
                 val_min, idx_min = min((val_min, idx_min) for (idx_min, val_min) in enumerate(min_array))
+                print(val_min, idx_min)
                 if (date_TR_new[date_TR_new_keys[i]] - val_min).days/31 <= 6:
                     refracks[date_TR_new_keys[i]] = [val_min, len(date_Frack_new[date_TR_new_keys[i]]) - 1]
+                    print(refracks)
+        print('')
 
     refracks_keys = list(refracks.keys())
     grp_first = {}
     Mpr_last = {}
+    print(refracks)
     for i in range(len(keys_new_stock_Frack)):
         if keys_new_stock_Frack[i] in refracks_keys:
+            print('yes', keys_new_stock_Frack[i])
             if refracks[keys_new_stock_Frack[i]][0] != '-':
+                print(date_Frack_new[keys_new_stock_Frack[i]])
                 for j in range(len(date_Frack_new[keys_new_stock_Frack[i]])):
                     for k in range(len(date_Frack_new[keys_new_stock_Frack[i]][j]) - 1, -1, -1):
                         if (refracks[keys_new_stock_Frack[i]][0] - date_Frack_new[keys_new_stock_Frack[i]][j][k]).days / 31 > 6:
                             date_Frack_new[keys_new_stock_Frack[i]][j].pop(k)
                             Mpr_Frack_new[keys_new_stock_Frack[i]][j].pop(k)
                 min_array = list()
+                print(date_Frack_new[keys_new_stock_Frack[i]])
                 for j in range(len(date_Frack_new[keys_new_stock_Frack[i]])):
                     if len(date_Frack_new[keys_new_stock_Frack[i]][j]) != 0:
                         min_array.append(min(date_Frack_new[keys_new_stock_Frack[i]][j]))
@@ -1092,11 +1106,12 @@ def main(array_with_file_names):
                         if len(date_Frack_new[keys_new_stock_Frack[i]]) < 2:
                             print('в файле ФРАК нет данных по ГРП для ' + keys_new_stock_Frack[i])
                             break
-
+                print('min_array', min_array)
                 if len(min_array) != 0:
                     val_min, idx_min = min((val_min, idx_min) for (idx_min, val_min) in enumerate(min_array))
                     val_max, idx_max = max((val_max, idx_max) for (idx_max, val_max) in enumerate(min_array))
-
+                    print(val_min, idx_min)
+                    print(val_max, idx_max)
                     grp_first[keys_new_stock_Frack[i]] = len(date_Frack_new[keys_new_stock_Frack[i]][idx_min])
                     Mpr_last[keys_new_stock_Frack[i]] = sum(Mpr_Frack_new[keys_new_stock_Frack[i]][idx_max])/\
                                                         len(Mpr_Frack_new[keys_new_stock_Frack[i]][idx_max])
@@ -1110,6 +1125,9 @@ def main(array_with_file_names):
 
             grp_first[keys_new_stock_Frack[i]] = 0
             Mpr_last[keys_new_stock_Frack[i]] = 0
+
+    print('Mpr_last', Mpr_last)
+    print('grp_first', grp_first)
 
     l_L = L['l'].tolist()  # l - длина скважины
 

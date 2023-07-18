@@ -967,10 +967,11 @@ def main(array_with_file_names):
     New_strat = pd.read_excel('Новая стратегия.xls', header=1)
     TR = pd.read_excel('ТР для загрузки.xlsx')
     """
+    array_with_file_names = ['L.xlsx', 'ФРАК.xls', 'PVT.xlsx', 'H.xlsx', 'Новая стратегия.xls', 'ТР для загрузки.xlsx']
     L = pd.read_excel(array_with_file_names[0])
-    Frack = pd.read_excel(array_with_file_names[2], header=1)
-    PVT = pd.read_excel(array_with_file_names[3])
-    H = pd.read_excel(array_with_file_names[1], header=1)
+    Frack = pd.read_excel(array_with_file_names[1], header=1)
+    PVT = pd.read_excel(array_with_file_names[2])
+    H = pd.read_excel(array_with_file_names[3], header=1)
     New_strat = pd.read_excel(array_with_file_names[4], header=1)
     TR = pd.read_excel(array_with_file_names[5])
 
@@ -1070,8 +1071,6 @@ def main(array_with_file_names):
                     Mpr_Frack_new[keys_new_stock_Frack[i]].append(info_pr[0:len(info_pr)])
                     break
 
-    print('date фрак')
-    print(date_Frack_new)
     date_Frack_new_keys = list(date_Frack_new.keys())
 
     TR = TR.dropna(axis=0, subset=['объекты работы', 'пластовое давление (тр), атм', 'обводненность (тр), % (объём)',
@@ -1148,16 +1147,23 @@ def main(array_with_file_names):
             refracks[scepka_New_strat[i]].append(counter)
 
     refracks_keys = list(refracks.keys())
-
+    print('refracks', refracks)
     for i in range(len(date_TR_new_keys)):
         if date_TR_new_keys[i] in date_Frack_new_keys and date_TR_new_keys[i] not in refracks_keys:
+            print('no', date_TR_new_keys[i])
+            print(date_Frack_new[date_TR_new_keys[i]])
             min_array = list()
             for j in range(len(date_Frack_new[date_TR_new_keys[i]])):
                 min_array.append(min(date_Frack_new[date_TR_new_keys[i]][0]))
+            print('min_array', min_array)
             if len(min_array) != 0:
                 val_min, idx_min = min((val_min, idx_min) for (idx_min, val_min) in enumerate(min_array))
+                print(val_min, idx_min)
+                print(date_TR_new[date_TR_new_keys[i]])
                 if (date_TR_new[date_TR_new_keys[i]] - val_min).days/31 <= 6:
                     refracks[date_TR_new_keys[i]] = [val_min, len(date_Frack_new[date_TR_new_keys[i]]) - 1]
+                    print(refracks[date_TR_new_keys[i]])
+            print('')
 
     refracks_keys = list(refracks.keys())
     grp_first = {}
