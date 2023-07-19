@@ -717,7 +717,7 @@ window.geometry("%dx%d" % (1250, 700))
 window.bind("<F11>", FullScreen)
 window.bind("<Escape>", quitFullScreen)
 
-for c in range(4): window.columnconfigure(index=c, weight=1)
+for c in range(5): window.columnconfigure(index=c, weight=1)
 for r in range(35): window.rowconfigure(index=r, weight=1)
 
 frame_files = LabelFrame(window)
@@ -727,7 +727,7 @@ frame_info.grid(row=0, column=1, columnspan=2, rowspan=10, padx=10, pady=10, ipa
 frame_text = LabelFrame(window)
 frame_text.grid(row=0, column=3, padx=10, pady=10, ipadx=20, ipady=10, sticky='nswe')
 
-for c in range(1): frame_files.columnconfigure(index=c, weight=1)
+for c in range(2): frame_files.columnconfigure(index=c, weight=1)
 for r in range(35): frame_files.rowconfigure(index=r, weight=1)
 for c in range(2): frame_info.columnconfigure(index=c, weight=1)
 for r in range(35): frame_info.rowconfigure(index=r, weight=1)

@@ -30,7 +30,8 @@ def viscosity_liq_finder(Wc, viscosity_oil, viscosity_water, B0):
     return viscosity_liq
 
 
-def formulas(objects_info, keys, text):
+def formulas(objects_info, text):
+
     # константы
     K_good = 1  # Кусп
     Re = 250  # Радиус контура питания, Re
@@ -39,55 +40,54 @@ def formulas(objects_info, keys, text):
     wf_fact = 0.005  # ширина трещины ФАКТ wf, м
     wf_plan = wf_fact  # ширина трещины ПЛАН wf, м
     Ld = 1  # Ld, дол.ед (=1)
-    coeff_anizotropii = 0.1  # Коэффициент анизотропии пласта
+    anisotropy_coefficient = 0.1  # Коэффициент анизотропии пласта
     method = 1
 
-    for i in range(len(keys)):
+    for key in objects_info:
 
-        n_grp_povt = objects_info[keys[i]][32]
+        n_grp_repeat = objects_info[key].count_fracks
 
-        if n_grp_povt < 4:
-            for_djoshi = 1
-            if objects_info[keys[i]][0] == 'ГС' or objects_info[keys[i]][0] == 1:
-                if objects_info[keys[i]][1] > 1:
-                    Mpr_stock = objects_info[keys[i]][2]
-                    if Mpr_stock == 0 and objects_info[keys[i]][1] == 0 and n_grp_povt != 0:
-                        for_djoshi = 0
-                    if Mpr_stock == 0 and objects_info[keys[i]][1] != 0:
-                        for_djoshi = 0
+        if n_grp_repeat < 4:
+            for_joshi = 1
+            if objects_info[key].well_type == 'ГС' or objects_info[key][0] == 1:
+                if objects_info[key][1] > 1:
+                    Mpr_stock = objects_info[key][2]
+                    if Mpr_stock == 0 and objects_info[key][1] == 0 and n_grp_repeat != 0:
+                        for_joshi = 0
+                    if Mpr_stock == 0 and objects_info[key][1] != 0:
+                        for_joshi = 0
 
-            if type(objects_info[keys[i]][23]) == float and (for_djoshi != 0) and (
-                    keys[i] not in list(objects_info_problems.keys())):
+            if type(objects_info[key][23]) == float and (for_joshi != 0) and (key not in list(objects_info_problems.keys())):
                 # print('')
                 # print('расчёт для ' + keys[i])
                 # print(objects_info[keys[i]])
 
-                n_mgrp_fact = objects_info[keys[i]][1]  # Кол-во стадий МГРП ФАКТ
+                n_mgrp_fact = objects_info[key].frack_stages  # Кол-во стадий МГРП ФАКТ
                 # print('n_mgrp_fact: ' + str(n_mgrp_fact))
-                Mpr_stock = objects_info[keys[i]][2]
+                Mpr_stock = objects_info[key].propping_agent_mass
                 # print('Mpr_stock: ' + str(Mpr_stock))
-                l_fact = objects_info[keys[i]][3]  # Длина ГС (расстояние между крайними портами) ФАКТ
+                l_fact = objects_info[key].l  # Длина ГС (расстояние между крайними портами) ФАКТ
                 # print('l_fact: ' + str(l_fact))
-                B0 = objects_info[keys[i]][4]  # Bo
+                B0 = objects_info[key].B0  # Bo
                 # print('B0: ' + str(B0))
-                a_Xf = objects_info[keys[i]][5]  # a, Xf
+                a_Xf = objects_info[key].a_Xf  # a, Xf
                 # print('a_Xf: ' + str(a_Xf))
-                b_Xf = objects_info[keys[i]][6]  # b, Xf
+                b_Xf = objects_info[key].b_Xf  # b, Xf
                 # print('b_Xf: ' + str(b_Xf))
-                S_nns = objects_info[keys[i]][7]  # S ННС расч
+                S_nns = objects_info[key].S_nns  # S ННС расч
                 # print('S_nns: ' + str(S_nns))
-                M_plan = objects_info[keys[i]][8]  # Мпр план
+                M_plan = objects_info[key].M_plan  # Мпр план
                 # print('M_plan: ' + str(M_plan))
-                P_nas = objects_info[keys[i]][9]  # Рнас
+                P_nas = objects_info[key].P_nas  # Рнас
                 # print('P_nas: ' + str(P_nas))
-                viscosity_oil = objects_info[keys[i]][10]  # Вязкость нефти
+                viscosity_oil = objects_info[key].viscosity_oil  # Вязкость нефти
                 # print('viscosity_oil: ' + str(viscosity_oil))
-                viscosity_water = objects_info[keys[i]][11]  # Вязкость воды
+                viscosity_water = objects_info[key].viscosity_water  # Вязкость воды
                 # print('viscosity_water: ' + str(viscosity_water))
-                nnt = objects_info[keys[i]][16]  # ННТ / Нэфф
+                nnt = objects_info[key].nnt  # ННТ / Нэфф
                 # print('nnt: ' + str(nnt))
 
-                if objects_info[keys[i]][0] == "ГС" or objects_info[keys[i]][0] == 1 or objects_info[keys[i]][0] == 2:
+                if objects_info[key][0] == "ГС" or objects_info[key][0] == 1 or objects_info[key][0] == 2:
                     if n_mgrp_fact > 1:
                         formula_type = 1  # формула Ли
                     else:
@@ -100,11 +100,11 @@ def formulas(objects_info, keys, text):
                 else:
                     rw = 0.108
                 # print(formula_type)
-                objects_info[keys[i]][0] = formula_type
+                objects_info[key][0] = formula_type
 
-                P_pl_now = objects_info[keys[i]][25]  # Pпл на последний месяц
-                P_zab_now = objects_info[keys[i]][26]  # Pзаб на последний месяц
-                B_tr_now = objects_info[keys[i]][24]  # % ТР на последний месяц
+                P_pl_now = objects_info[key][25]  # Pпл на последний месяц
+                P_zab_now = objects_info[key][26]  # Pзаб на последний месяц
+                B_tr_now = objects_info[key][24]  # % ТР на последний месяц
 
                 viscosity_pot = viscosity_liq_finder(B_tr_now / 100, viscosity_oil, viscosity_water, B0)
                 # Вязкость жидкости при расчёте потенциала
@@ -189,15 +189,15 @@ def formulas(objects_info, keys, text):
 
                 n_stad = n_mgrp_plan  # кол-во стадий
 
-                Q_water = objects_info[keys[i]][31] + 1
+                Q_water = objects_info[key][31] + 1
                 iterator = 3
 
-                while objects_info[keys[i]][31] < Q_water and iterator <= len(objects_info[keys[i]][18]):
+                while objects_info[key][31] < Q_water and iterator <= len(objects_info[key][18]):
 
-                    P_zab_for_k = objects_info[keys[i]][21][0:iterator]
-                    P_pl_for_k = objects_info[keys[i]][20][0:iterator]
-                    B_for_k = objects_info[keys[i]][19][0:iterator]
-                    Q_w_for_k = objects_info[keys[i]][18][0:iterator]
+                    P_zab_for_k = objects_info[key][21][0:iterator]
+                    P_pl_for_k = objects_info[key][20][0:iterator]
+                    B_for_k = objects_info[key][19][0:iterator]
+                    Q_w_for_k = objects_info[key][18][0:iterator]
 
                     K_array = list()
                     for p in range(len(Q_w_for_k)):
@@ -227,9 +227,9 @@ def formulas(objects_info, keys, text):
                                 K = (Q_w_2_months / (P_pl_2_months - P_zab_2_months) / nnt * viscosity_start * B0 *
                                      (math.log(
                                          (a_dgoshi + math.sqrt(a_dgoshi * a_dgoshi - (l_fact / 2) ** 2)) / (l_fact / 2))
-                                      + coeff_anizotropii ** 0.5 * nnt / l_fact * math.log(
-                                                 coeff_anizotropii ** 0.5 * nnt / (
-                                                             coeff_anizotropii ** 0.5 + 1) / rw) + 0) * 18.41)
+                                      + anisotropy_coefficient ** 0.5 * nnt / l_fact * math.log(
+                                                 anisotropy_coefficient ** 0.5 * nnt / (
+                                                             anisotropy_coefficient ** 0.5 + 1) / rw) + 0) * 18.41)
                             except ZeroDivisionError:
                                 K = ''
 
@@ -288,8 +288,8 @@ def formulas(objects_info, keys, text):
                             try:
                                 Q_water = (K_good * K * (P_pl_now - P_zab_now) * nnt) / (viscosity_pot * B0 * (
                                         math.log((a_dgoshi + math.sqrt(a_dgoshi * a_dgoshi - (l_fact / 2) ** 2)) / (
-                                                l_fact / 2)) + coeff_anizotropii ** 0.5 * nnt / l_fact * math.log(
-                                    coeff_anizotropii ** 0.5 * nnt / (coeff_anizotropii ** 0.5 + 1) / rw) + 0) * 18.41)
+                                                l_fact / 2)) + anisotropy_coefficient ** 0.5 * nnt / l_fact * math.log(
+                                    anisotropy_coefficient ** 0.5 * nnt / (anisotropy_coefficient ** 0.5 + 1) / rw) + 0) * 18.41)
                             except ZeroDivisionError:
                                 Q_water = 0
 
@@ -315,21 +315,21 @@ def formulas(objects_info, keys, text):
                             except ZeroDivisionError:
                                 Q_water = 0
                     else:
-                        Q_water = objects_info[keys[i]][31] + 1
+                        Q_water = objects_info[key][31] + 1
 
                     iterator += 1
 
                 if iterator > 6:
-                    objects_info[keys[i]][37] = 'Обрискования по последнему фраку'
+                    objects_info[key][37] = 'Обрискования по последнему фраку'
 
-                objects_info[keys[i]][33] = K
+                objects_info[key][33] = K
                 if type(K) == str:
-                    objects_info[keys[i]][34] = ''
+                    objects_info[key][34] = ''
                     Q_water = ''
                 else:
-                    objects_info[keys[i]][34] = Q_water
+                    objects_info[key][34] = Q_water
 
-                B_now = objects_info[keys[i]][24]
+                B_now = objects_info[key][24]
                 summer = 0
                 if B_now >= 50:
                     summer = 10
@@ -339,16 +339,16 @@ def formulas(objects_info, keys, text):
                     summer = 25
 
                 if (B_now + summer) > 100:
-                    objects_info[keys[i]][35] = 100
+                    objects_info[key][35] = 100
                 else:
-                    objects_info[keys[i]][35] = round(B_now + summer, 2)
+                    objects_info[key][35] = round(B_now + summer, 2)
 
-                ro_oil = float(objects_info[keys[i]][12])
+                ro_oil = float(objects_info[key][12])
 
                 try:
-                    objects_info[keys[i]][36] = round(Q_water * ro_oil * (100 - objects_info[keys[i]][35]) / 100, 2)
+                    objects_info[key][36] = round(Q_water * ro_oil * (100 - objects_info[key][35]) / 100, 2)
                 except TypeError:
-                    objects_info[keys[i]][36] = ''
+                    objects_info[key][36] = ''
 
     return objects_info
 
