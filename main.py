@@ -276,6 +276,7 @@ class Update:
 
 
 def load_files(pos_in_array, row_to_label):
+
     file = filedialog.askopenfilename()
     if len(file) > 0:
         try:
@@ -288,30 +289,13 @@ def load_files(pos_in_array, row_to_label):
         files[pos_in_array] = file
 
 
-def load_files_zap(pos_in_array, row_to_label):
-    file = filedialog.askopenfilename()
-    if len(file) > 0:
-        try:
-            r = frame_files.nametowidget("." + str(pos_in_array))
-            r.grid_forget()
-        except KeyError:
-            print('')
-        global label_ok
-        label_ok = tk.Label(frame_files, text='✔︎ Файл загружен ︎', font=('Arial Bold', 8), justify='center', name=str(pos_in_array))
-        label_ok.grid(row=row_to_label, column=0, columnspan=25, pady=1, sticky='e')
-        files[pos_in_array] = file
-
-
 def load_zap():
-    lbl_zap.grid(row=22, column=0, pady=1, padx=1)
-    btn_zap.grid(row=22, column=1, pady=1)
-
-
-def not_load_zap():
-    files[6] = 0
-    lbl_zap.grid_forget()
-    btn_zap.grid_forget()
-    label_ok.grid_forget()
+    if var.get() == 0:
+        lbl_zap.grid_forget()
+        btn_zap.grid_forget()
+    else:
+        lbl_zap.grid(row=22, column=0, pady=1, padx=1)
+        btn_zap.grid(row=22, column=1, pady=1)
 
 
 def FullScreen(event, fullScreenState):
@@ -685,12 +669,12 @@ def runner():
     #widgets.clear()
 
     objects_info = dfd.data_from_df(files, text)
-    #objects_info = f.formulas(objects_info, keys, text)
 
     btn_excel.configure(command=lambda: dte.to_excel(objects_info, text))
     btn_excel.grid(row=31, column=0, pady=2)
-    #btn_repeat.configure(command=lambda: f.formulas(objects_info, keys, text))
-    #btn_repeat.grid(row=32, column=0, pady=2)
+
+    btn_repeat.configure(command=lambda: f.formulas(objects_info, text))
+    btn_repeat.grid(row=32, column=0, pady=2)
 
     #Info_for_listbox(frame_info, objects_info, field, formation, stock, objects_info_for_graphs, objects_dates_for_graphs)
 
@@ -717,15 +701,15 @@ window.geometry("%dx%d" % (1250, 700))
 window.bind("<F11>", FullScreen)
 window.bind("<Escape>", quitFullScreen)
 
-for c in range(5): window.columnconfigure(index=c, weight=1)
+for c in range(3): window.columnconfigure(index=c, weight=1)
 for r in range(35): window.rowconfigure(index=r, weight=1)
 
 frame_files = LabelFrame(window)
 frame_files.grid(row=0, column=0, rowspan=20, padx=10, pady=10, ipadx=10, ipady=10, sticky='nswe')
 frame_info = LabelFrame(window)
-frame_info.grid(row=0, column=1, columnspan=2, rowspan=10, padx=10, pady=10, ipadx=10, ipady=10, sticky='nswe')
+frame_info.grid(row=0, column=1, rowspan=10, padx=10, pady=10, ipadx=10, ipady=10, sticky='nswe')
 frame_text = LabelFrame(window)
-frame_text.grid(row=0, column=3, padx=10, pady=10, ipadx=20, ipady=10, sticky='nswe')
+frame_text.grid(row=0, column=2, padx=10, pady=10, ipadx=20, ipady=10, sticky='nswe')
 
 for c in range(2): frame_files.columnconfigure(index=c, weight=1)
 for r in range(35): frame_files.rowconfigure(index=r, weight=1)
@@ -735,7 +719,7 @@ for c in range(1): frame_text.columnconfigure(index=c, weight=1)
 for r in range(35): frame_text.rowconfigure(index=r, weight=1)
 
 global files
-files = [0, 0, 0, 0, 0, 0, 0]
+files = ['', '', '', '', '', '', '']
 
 
 head = tkinter.font.Font(family="Arial Bold", size=14)
@@ -770,20 +754,20 @@ tk.Label(frame_files, text='ТР', font=font, justify='center').grid(row=17, col
 tk.Button(frame_files, text='Загрузить', font=font, justify='center', width=20, command=partial(load_files, 5, 18)).grid(row=17, column=1, pady=1)
 tk.Label(frame_files, text=' ', font=font, justify='center').grid(row=18, column=0, columnspan=2, pady=1, sticky='e')
 
-how_zap = IntVar()
-how_zap.set(0)
+var = IntVar()
+var.set(0)
 
 tk.Label(frame_files, text='Загружать файл с запасами:', font=font, justify='center').grid(row=20, column=0, pady=1, padx=1, sticky='nsew')
 
-rb_zap_no = Radiobutton(frame_files, text='нет', font=font, variable=how_zap, value=0, command=not_load_zap)
+rb_zap_no = Radiobutton(frame_files, text='нет', font=font, variable=var, value=0, command=load_zap)
 rb_zap_no.grid(row=20, column=1, pady=1, padx=1, sticky='w')
 
-rb_zap_yes = Radiobutton(frame_files, text='да', font=font, variable=how_zap, value=1, command=load_zap)
+rb_zap_yes = Radiobutton(frame_files, text='да', font=font, variable=var, value=1, command=load_zap)
 rb_zap_yes.grid(row=21, column=1, pady=1, padx=1, sticky='w')
 
 lbl_zap = tk.Label(frame_files, text='Запасы', font=font, justify='center')
 lbl_zap.grid(row=22, column=0, pady=1, padx=1)
-btn_zap = tk.Button(frame_files, text='Загрузить', font=font, justify='center', width=20, command=partial(load_files_zap, 6, 23))
+btn_zap = tk.Button(frame_files, text='Загрузить', font=font, justify='center', width=20, command=partial(load_files, 6, 23))
 btn_zap.grid(row=22, column=1, pady=1)
 lbl_zap.grid_forget()
 btn_zap.grid_forget()

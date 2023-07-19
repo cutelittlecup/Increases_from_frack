@@ -45,12 +45,15 @@ def data_from_df(files, text):
 
     L = L.dropna(subset=['гс/ннс']).reset_index(drop=True)
     L[['м-е', 'пласт', '№ скважины']] = L[['м-е', 'пласт', '№ скважины']].astype(str)
+    L['сцепка'] = L['м-е'] + '_' + L['пласт'] + '_' + L['№ скважины']
+
+    H[['м-е', 'пласт', 'скважина - забой']] = H[['м-е', 'пласт', 'скважина - забой']].astype(str)
+    H['сцепка'] = H['м-е'] + '_' + H['пласт'] + '_' + H['скважина - забой']
 
     try:
         Frack['месторождение']
     except KeyError:
         Frack.rename(columns={'unnamed: 0': 'месторождение'}, inplace=True)
-
     Frack[['месторождение', 'номер скважины']] = Frack[['месторождение', 'номер скважины']].fillna(method='ffill')
     Frack['м пр'] = Frack['м пр'].fillna(0)
     Frack[['месторождение', 'пласт', 'номер скважины']] = Frack[['месторождение', 'пласт', 'номер скважины']].astype(
@@ -69,7 +72,6 @@ def data_from_df(files, text):
     New_strat['сцепка'] = New_strat['месторождение'] + '_' + New_strat['объект разработки до гтм'] + '_' + New_strat[
         'скважина']
 
-    L['сцепка'] = L['м-е'] + '_' + L['пласт'] + '_' + L['№ скважины']
     keys = L['сцепка'].unique()
 
     for key in keys:
@@ -86,7 +88,7 @@ def data_from_df(files, text):
             y_tr = float(sub_l['координата забоя y (по траектории)'])
             objects_info[key].find_l(x, x_tr, y, y_tr)
 
-        sub_pvt = PVT[(PVT['месторождение'] == sub_l['м-е']) & (PVT['пласт'] == sub_l['пласт'])]
+        sub_pvt = PVT[(PVT['месторождение'] == sub_l['м-е'].item()) & (PVT['пласт'] == sub_l['пласт'].item())]
         objects_info[key].B0 = sub_pvt['bo']
         objects_info[key].a_Xf = sub_pvt['а xf']
         objects_info[key].b_Xf = sub_pvt['b xf']
@@ -100,68 +102,67 @@ def data_from_df(files, text):
         objects_info[key].KIN = sub_pvt['кин']
         objects_info[key].K_nn = sub_pvt['кнн']
 
-        sub_h = H[H[key] == key]
+        sub_h = H[H['сцепка'] == key]
         objects_info[key].nnt = sub_h['ннт']
-        objects_info[key].onnt = sub_h['oннт']
+        objects_info[key].onnt = sub_h['оннт']
 
         sub_tr = TR[(TR['сцепка'] == key) & (TR['характер работы'] == 'НЕФ')].reset_index(drop=True)
         if len(sub_tr) != 0:
             objects_info[key].first_date_tr = sub_tr.iloc[0]['дата']
 
-        try:
-            work_check = sub_tr.loc[len(sub_tr) - 9:len(sub_tr)].reset_index(drop=True)
-        except IndexError:
-            work_check = sub_tr
-        if 'ПЬЕЗ.' not in work_check['состояние'] and 'ПЬЕЗ' not in work_check['состояние']:
             try:
-                work_check = sub_tr.loc[len(sub_tr) - 6:len(sub_tr)].reset_index(drop=True)
+                work_check = sub_tr.loc[len(sub_tr) - 9:len(sub_tr)].reset_index(drop=True)
             except IndexError:
                 work_check = sub_tr
-        sub_tr['пластовое давление (тр), атм'] = sub_tr['пластовое давление (тр), атм'].fillna(0)
-        sub_tr['пластовое давление (тр), атм'] = sub_tr.fillna(method='ffill').fillna(method='bfill')
-
-        objects_info[key].history = sub_tr
-
-        sub_frack = Frack[Frack['сцепка'] == key]
-        sub_frack['diff'] = ((objects_info[key].first_date_tr - sub_frack['дата']).dt.days / 31).astype(int)
-        sub_frack.drop(index=sub_frack[sub_frack['diff'] > 6].index, inplace=True)
-        if len(sub_frack) != 0:
-            objects_info[key].propping_agent_mass = Frack['м пр'].summ() / len(Frack['м пр'])
-            objects_info[key].frack_stages = Frack['дата'].count()
-
-        sub_new_strat = New_strat[New_strat['сцепка'] == key].copy()
-        if len(sub_new_strat) != 0:
-            sub_new_strat['diff'] = ((objects_info[key].first_date_tr - sub_new_strat['внр.1']).dt.days / 31).astype(
-                int)
-            objects_info[key].count_fracks = (sub_new_strat['diff'] < -1).sum()
-            try:
-                frack_drilling = sub_new_strat.loc[(sub_new_strat['diff'] > -1) & (sub_new_strat['diff'] <= 6)].index[0]
-                objects_info[key].first_frack = sub_new_strat.loc[frack_drilling, 'внр.1']
-            except IndexError:
+            if 'ПЬЕЗ.' not in work_check['состояние'] and 'ПЬЕЗ' not in work_check['состояние']:
                 try:
-                    objects_info[key].count_fracks = objects_info[key].count_fracks - 1
-                    frack = sub_new_strat.loc[(sub_new_strat['diff'] < -1)].index[0]
-                    objects_info[key].first_frack = sub_new_strat.loc[frack, 'внр.1']
+                    work_check = sub_tr.loc[len(sub_tr) - 6:len(sub_tr)].reset_index(drop=True)
                 except IndexError:
-                    objects_info[key].first_frack = '-'
+                    work_check = sub_tr
+            sub_tr['пластовое давление (тр), атм'] = sub_tr['пластовое давление (тр), атм'].fillna(method='ffill').fillna(method='bfill')
 
-        # если скв из тех режимов есть во фраке, но нет в НС
-        if objects_info[key].frack_stages is not None and objects_info[key].first_frack is None:
-            stages_dates = objects_info[key].frack_stages
-            stages_dates['diff'] = ((objects_info[key].first_date_tr - stages_dates['дата']).dt.days / 31).astype(int)
-            objects_info[key].count_fracks = 0
-            try:
-                objects_info[key].first_frack = stages_dates.loc[(stages_dates['diff'] > -1) & (stages_dates['diff'] <= 6)]['дата'].min()
-            except IndexError:
+            objects_info[key].history = sub_tr
+
+            sub_frack = Frack[Frack['сцепка'] == key].copy()
+
+            sub_frack['diff'] = ((objects_info[key].first_date_tr - sub_frack['дата']).dt.days / 31).astype(int)
+            sub_frack.drop(index=sub_frack[sub_frack['diff'] > 6].index, inplace=True)
+            if len(sub_frack) != 0:
+                objects_info[key].propping_agent_mass = sub_frack['м пр'].sum() / len(sub_frack['м пр'])
+                objects_info[key].frack_stages = len(sub_frack['дата'])
+
+            sub_new_strat = New_strat[New_strat['сцепка'] == key].copy()
+            if len(sub_new_strat) != 0:
+                sub_new_strat['diff'] = ((objects_info[key].first_date_tr - sub_new_strat['внр.1']).dt.days / 31).astype(
+                    int)
+                objects_info[key].count_fracks = (sub_new_strat['diff'] < -1).sum()
                 try:
-                    objects_info[key].first_frack = stages_dates.loc[(stages_dates['diff'] < -1)]['дата'].min()
-                    objects_info[key].count_fracks = 0
+                    frack_drilling = sub_new_strat.loc[(sub_new_strat['diff'] > -1) & (sub_new_strat['diff'] <= 6)].index[0]
+                    objects_info[key].first_frack = sub_new_strat.loc[frack_drilling, 'внр.1']
                 except IndexError:
-                    objects_info[key].first_frack = '-'
+                    try:
+                        objects_info[key].count_fracks = objects_info[key].count_fracks - 1
+                        frack = sub_new_strat.loc[(sub_new_strat['diff'] < -1)].index[0]
+                        objects_info[key].first_frack = sub_new_strat.loc[frack, 'внр.1']
+                    except IndexError:
+                        objects_info[key].first_frack = '-'
 
-        sub_reserves = reserves[reserves['скважина'] == key]
-        if len(sub_reserves) != 0:
-            objects_info[key].oiz = sub_reserves['оиз']
+            # если скв из тех режимов есть во фраке, но нет в НС
+            if objects_info[key].frack_stages is not None and objects_info[key].first_frack is None:
+                objects_info[key].count_fracks = 0
+                try:
+                    objects_info[key].first_frack = sub_frack.loc[(sub_frack['diff'] > -1) & (sub_frack['diff'] <= 6)]['дата'].min()
+                except IndexError:
+                    try:
+                        objects_info[key].first_frack = sub_frack.loc[(sub_frack['diff'] < -1)]['дата'].min()
+                        objects_info[key].count_fracks = 0
+                    except IndexError:
+                        objects_info[key].first_frack = '-'
+
+        if len(reserves) != 0:
+            sub_reserves = reserves[reserves['скважина'] == key]
+            if len(sub_reserves) != 0:
+                objects_info[key].oiz = sub_reserves['оиз']
 
     #objects_info = f.formulas(objects_info, text)
 

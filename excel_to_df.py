@@ -16,7 +16,6 @@ def df_reader(files):
         :param ind: индекс файла в массиве с названиями для отделения эмпирики от ПР
         :return: датафрейм
         """
-        print(len(files), ind, files[ind])
         file = files[ind]
         if len(file) > 0:
             if ind in [1, 3, 4]:
@@ -46,7 +45,7 @@ def df_reader(files):
 
     t5 = threading.Thread(target=lambda q, arg: q.put(dataframe_reader(arg)), args=(que5, 4))
     t6 = threading.Thread(target=lambda q, arg: q.put(dataframe_reader(arg)), args=(que6, 5))
-    t7 = threading.Thread(target=lambda q, arg: q.put(dataframe_reader(arg)), args=(que6, 6))
+    t7 = threading.Thread(target=lambda q, arg: q.put(dataframe_reader(arg)), args=(que7, 6))
 
     t1.start()
     t2.start()
@@ -83,6 +82,6 @@ def df_reader(files):
         TR = que6.get()
 
     while not que7.empty():
-        reserves = que6.get()
+        reserves = que7.get()
 
     return L, Frack, PVT, H, New_strat, TR, reserves
